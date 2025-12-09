@@ -1,0 +1,61 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Create Account</h2>
+
+    <form [formGroup]="registerForm" (ngSubmit)="submit()">
+
+      <!-- USERNAME -->
+      <input type="text" placeholder="Username" formControlName="username" />
+
+      @if (registerForm.get('username')?.touched && registerForm.get('username')?.errors?.['minlength']) {
+        <div class="error">Username must have at least 3 characters</div>
+      }
+
+      <!-- PASSWORD -->
+      <input type="password" placeholder="Password" formControlName="password" />
+
+      @if (registerForm.get('password')?.touched && registerForm.get('password')?.invalid) {
+        <div class="error">
+          Password must be at least 8 characters, include 1 uppercase letter and 1 number
+        </div>
+      }
+
+      <!-- CITY -->
+      <input list="cities" placeholder="City" formControlName="city" />
+
+      <datalist id="cities">
+        <option value="Berlin"></option>
+        <option value="Hamburg"></option>
+        <option value="Munich"></option>
+        <option value="Cologne"></option>
+        <option value="Frankfurt am Main"></option>
+        <option value="Stuttgart"></option>
+        <option value="Düsseldorf"></option>
+        <option value="Leipzig"></option>
+      </datalist>
+
+      @if (registerForm.get('city')?.touched && registerForm.get('city')?.invalid) {
+        <div class="error">City is required</div>
+      }
+
+      <!-- BUTTON -->
+      <button type="submit" [disabled]="!registerForm.valid">
+        Register
+      </button>
+
+    </form>
+
+    @if (successMessage) {
+      <div class="success">{{ successMessage }}</div>
+    }
+
+    @if (backendError) {
+      <div class="error">{{ backendError }}</div>
+    }
+
+    <p class="link-text">
+      Already have an account?
+      <a routerLink="/login">Login</a>
+    </p>
+  </div>
+</div>
