@@ -56,6 +56,7 @@ class TokenBlocklist(db.Model):
 
 
 
+
 class JournalEntry(db.Model):
     __tablename__ = 'journal_entries'
 
@@ -76,6 +77,9 @@ class JournalEntry(db.Model):
 
     ai_summary = db.Column(db.Text)
     emotion_detected = db.Column(db.String(50))
+
+    sleep_duration = db.Column(db.Float)        
+    weather = db.Column(db.String(100)) 
 
     created_at = db.Column(db.DateTime(), default=lambda: datetime.now(timezone.utc))
 
@@ -119,5 +123,13 @@ class JournalEntry(db.Model):
             .all()
         )
     
-    
+    def set_sleep_duration(self, hours: float):
+        self.sleep_duration = hours
+        db.session.commit()
+
+
+    def set_weather(self, weather: str):
+        self.weather = weather
+        db.session.commit()
+
 
