@@ -53,7 +53,7 @@ export class Register {
           }, 5000);
         },
         error: (err) => {
-          this.backendError = err.error?.message || 'Registration failed';
+          this.backendError = err.error?.error || 'Registration failed';
           this.cdr.detectChanges();
         }
       });
