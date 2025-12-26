@@ -1,1 +1,66 @@
-<p>today works!</p>
+<!-- HEADER -->
+<header class="header">
+  <h1>
+    Good morning, {{ username }}! Today will be a great day ☀️
+  </h1>
+  <span class="date">
+    {{ today | date:'fullDate':'':'en-US' }}
+  </span>
+</header>
+
+<!-- GRID -->
+<section class="grid">
+
+  <!-- WEATHER -->
+  <div class="card weather">
+    <h3>Weather in {{ city || '...' }}</h3>
+
+    @if (weather) {
+      <div class="weather-row">
+        <div class="icon">☀️</div>
+        <div>
+          <strong>
+            {{ weather.temperature }}°C · {{ weather.description }}
+          </strong>
+          <div class="muted">
+            Feels like {{ weather.feels_like }}° ·
+            Wind {{ weather.wind }} m/s
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="placeholder">
+        Weather data is loading…
+      </div>
+    }
+  </div>
+
+  <!-- QUOTE -->
+  <div class="card">
+    <h3>Quote of the Day</h3>
+
+    @if (quote) {
+      <p class="quote">“{{ quote }}”</p>
+    } @else {
+      <p class="placeholder">Quote is loading…</p>
+    }
+  </div>
+
+  <!-- PLAN -->
+  <div class="card">
+    <h3>AI Plan for Today 🤖</h3>
+
+    @if (plan) {
+      <ul>
+        @for (item of plan.items; track item) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    } @else {
+      <div class="placeholder">
+        Your personal daily plan is being prepared…
+      </div>
+    }
+  </div>
+
+</section>

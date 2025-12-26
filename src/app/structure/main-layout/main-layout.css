@@ -1,0 +1,101 @@
+/* =====================================================
+   APP SHELL (PRIVATE AREA ONLY)
+   ===================================================== */
+
+.app-shell {
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1a1a1a;
+
+  background:
+    radial-gradient(circle at 15% 15%, #e0e7ff 0%, transparent 45%),
+    radial-gradient(circle at 85% 20%, #fde7f3 0%, transparent 45%),
+    radial-gradient(circle at 30% 85%, #e0f2fe 0%, transparent 45%),
+    linear-gradient(135deg, #f6f8ff 0%, #f9fbff 100%);
+
+  overflow: hidden;
+}
+
+/* Noise overlay */
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+/* =====================================================
+   CONTENT
+   ===================================================== */
+
+.content {
+  flex: 1;
+  padding: 36px 42px;
+  position: relative;
+  z-index: 1;
+}
+
+/* =====================================================
+   CARDS (GLOBAL LOOK)
+   ===================================================== */
+
+.card,
+.history-card,
+.diary-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  border-radius: 20px;
+  padding: 24px;
+
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover,
+.history-card:hover,
+.diary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(0,0,0,0.12);
+}
+
+/* =====================================================
+   LOGOUT BUTTON
+   ===================================================== */
+
+.logout-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10;
+
+  padding: 12px 22px;
+  border-radius: 16px;
+  border: none;
+
+  background: linear-gradient(135deg, #ff6b6b, #ff8787);
+  color: white;
+  font-weight: 700;
+
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(255, 107, 107, 0.35);
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 40px rgba(255, 107, 107, 0.45);
+}
+
+.logout-btn:active {
+  transform: translateY(0);
+}

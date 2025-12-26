@@ -1,0 +1,47 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.weather-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.icon {
+  font-size: 48px;
+}
+
+.muted {
+  color: #666;
+  font-size: 14px;
+}
+
+.quote {
+  font-style: italic;
+  color: #444;
+}
+
+ul {
+  padding-left: 18px;
+}
+
+li {
+  margin-bottom: 8px;
+}

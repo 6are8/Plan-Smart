@@ -1,0 +1,46 @@
+<div class="diary-card">
+
+  <h2>Evening Reflection ✍️</h2>
+
+  <!-- MOOD -->
+  <div class="mood">
+    <span class="label">Mood (1–5):</span>
+
+    <div class="mood-icons">
+      @for (m of moods; track m.value) {
+        <span
+          class="emoji"
+          [class.active]="mood === m.value"
+          (click)="selectMood(m.value)">
+          {{ m.icon }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- FORM -->
+  <form [formGroup]="form">
+
+    <label>What went well today?</label>
+    <textarea
+      formControlName="good"
+      placeholder="e.g. finished a presentation, 2× focus sessions…">
+    </textarea>
+
+    <label>What could be improved tomorrow?</label>
+    <textarea
+      formControlName="improve"
+      placeholder="go to bed earlier, reduce social media…">
+    </textarea>
+
+    <button type="button" (click)="submit()">
+      Save
+    </button>
+
+    @if (successMessage) {
+      <p class="success">{{ successMessage }}</p>
+    }
+
+  </form>
+
+</div>

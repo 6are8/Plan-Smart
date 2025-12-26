@@ -1,0 +1,25 @@
+<aside class="sidebar">
+  <h2 class="logo">Daily Assistant</h2>
+
+  <nav>
+    <a
+      routerLink="/today"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      Today
+    </a>
+
+    <a routerLink="/diary" routerLinkActive="active">
+      Diary
+    </a>
+
+    <a routerLink="/history" routerLinkActive="active">
+      History
+    </a>
+
+    <a routerLink="/settings" routerLinkActive="active">
+      Settings
+    </a>
+  </nav>
+</aside>

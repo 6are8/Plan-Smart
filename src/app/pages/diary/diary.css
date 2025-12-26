@@ -1,0 +1,93 @@
+.diary-card {
+  max-width: 640px;
+  background: #fff;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+}
+
+h2 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* MOOD */
+.mood {
+  margin-bottom: 24px;
+}
+
+.label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.mood-icons {
+  display: flex;
+  gap: 12px;
+}
+
+.emoji {
+  font-size: 28px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.emoji:hover {
+  transform: scale(1.15);
+  opacity: 0.8;
+}
+
+.emoji.active {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
+/* FORM */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+label {
+  font-weight: 500;
+}
+
+textarea {
+  resize: none;
+  min-height: 90px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-family: inherit;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #2d5bff;
+}
+
+button {
+  align-self: flex-start;
+  margin-top: 10px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  border: none;
+  background: #2d5bff;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1f47e0;
+}
+
+/* SUCCESS */
+.success {
+  color: #2e7d32;
+  font-size: 14px;
+  margin-top: 8px;
+}

@@ -1,0 +1,76 @@
+<div class="settings-page">
+
+  <!-- WEATHER SETTINGS -->
+  <div class="card">
+    <h3>Weather 🌤️</h3>
+
+    <label>City</label>
+    <input
+      type="text"
+      list="cities"
+      [(ngModel)]="city"
+    />
+
+    <datalist id="cities">
+      <option value="Berlin"></option>
+      <option value="Hamburg"></option>
+      <option value="Munich"></option>
+      <option value="Cologne"></option>
+      <option value="Frankfurt am Main"></option>
+      <option value="Stuttgart"></option>
+      <option value="Düsseldorf"></option>
+      <option value="Leipzig"></option>
+    </datalist>
+
+    <button (click)="saveCity()">Save city</button>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="card">
+    <h3>Notifications 🔔</h3>
+
+    <div class="notification-controls">
+
+      <div class="toggle-row">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="notificationsEnabled"
+            (change)="toggleNotifications($event)"
+          />
+          Enable notifications
+        </label>
+      </div>
+
+      <div class="time-row">
+        <div>
+          <label>Morning</label>
+          <input type="time" [(ngModel)]="morningTime" />
+        </div>
+
+        <div>
+          <label>Evening</label>
+          <input type="time" [(ngModel)]="eveningTime" />
+        </div>
+      </div>
+
+      <button type="button" (click)="saveNotificationSettings()">
+        Save notification settings
+      </button>
+
+    </div>
+  </div>
+
+
+  <!-- ABOUT -->
+  <div class="card">
+    <h3>About the Project ℹ️</h3>
+
+    <p class="muted">
+      Daily Assistant – university project.<br />
+      Team of 3 students.<br />
+      Angular + Flask + SQLite.
+    </p>
+  </div>
+
+</div>

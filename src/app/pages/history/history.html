@@ -1,0 +1,58 @@
+<div class="history-card">
+
+  <h2>History 📚</h2>
+
+  @if (loading) {
+    <p class="muted">Loading entries…</p>
+  }
+
+  @if (!loading && entries.length === 0) {
+    <p class="muted">No entries yet.</p>
+  }
+
+  @for (entry of entries; track entry.id) {
+    <div class="entry">
+
+      <div class="left">
+        <div class="date">{{ formatDate(entry.date) }}</div>
+        <div class="summary">AI: {{ entry.summary }}</div>
+      </div>
+
+      <div class="actions">
+        <button class="ghost" (click)="openDetails(entry.id)">
+          Details
+        </button>
+      </div>
+
+    </div>
+  }
+
+</div>
+
+
+@if (selectedEntry) {
+  <div class="overlay" (click)="closeDetails()">
+
+    <div class="modal" (click)="$event.stopPropagation()">
+
+      <h3>{{ formatDateFull(selectedEntry.date) }}</h3>
+
+      <div class="modal-section">
+        <strong>Mood:</strong>
+        <span class="mood">{{ moodIcon(selectedEntry.mood) }}</span>
+      </div>
+
+      <div class="modal-section">
+        <strong>What went well:</strong>
+        <p>{{ selectedEntry.good }}</p>
+      </div>
+
+      <div class="modal-section">
+        <strong>What can be improved:</strong>
+        <p>{{ selectedEntry.improve }}</p>
+      </div>
+
+    </div>
+
+  </div>
+}
