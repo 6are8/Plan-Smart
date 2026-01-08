@@ -27,35 +27,24 @@
 
   <!-- NOTIFICATIONS -->
   <div class="card">
-    <h3>Notifications 🔔</h3>
+    <h3>Time settings 🕒</h3>
 
-    <div class="notification-controls">
-
-      <div class="toggle-row">
-        <label>
-          <input
-            type="checkbox"
-            [checked]="notificationsEnabled"
-            (change)="toggleNotifications($event)"
-          />
-          Enable notifications
-        </label>
-      </div>
+    <div class="time-settings">
 
       <div class="time-row">
         <div>
-          <label>Morning</label>
+          <label>Time for morning AI plan</label>
           <input type="time" [(ngModel)]="morningTime" />
         </div>
 
         <div>
-          <label>Evening</label>
+          <label>Time for evening reflection</label>
           <input type="time" [(ngModel)]="eveningTime" />
         </div>
       </div>
 
-      <button type="button" (click)="saveNotificationSettings()">
-        Save notification settings
+      <button type="button" (click)="saveTimeSettings()">
+        Save time settings
       </button>
 
     </div>

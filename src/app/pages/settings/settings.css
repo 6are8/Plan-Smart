@@ -62,7 +62,7 @@ button:disabled {
 }
 
 /* NOTIFICATIONS */
-.notification-controls {
+.time-settings {
   display: flex;
   flex-direction: column;
   gap: 16px;
