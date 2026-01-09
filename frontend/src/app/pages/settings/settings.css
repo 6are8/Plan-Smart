@@ -1,0 +1,90 @@
+.settings-page {
+  display: grid;
+  gap: 24px;
+  max-width: 900px;
+}
+
+/* CARD */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.05);
+}
+
+.card h3 {
+  margin-bottom: 16px;
+}
+
+/* FORM */
+label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+  color: #333;
+}
+
+input[type="text"],
+input[type="time"] {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 16px;
+}
+
+/* BUTTONS */
+button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  background: #4f7cff;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #3c67e3;
+}
+
+button.ghost {
+  background: #eef2ff;
+  color: #3c67e3;
+}
+
+button.ghost:hover {
+  background: #dbe4ff;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* NOTIFICATIONS */
+.time-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time-row {
+  display: flex;
+  gap: 24px;
+}
+
+.time-row div {
+  flex: 1;
+}
+
+/* TEXT */
+.muted {
+  color: #666;
+  font-size: 14px;
+}

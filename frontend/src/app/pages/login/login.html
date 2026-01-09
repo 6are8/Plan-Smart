@@ -1,0 +1,54 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h2>Login</h2>
+
+    <form [formGroup]="loginForm" (ngSubmit)="submit()">
+
+      <!-- USERNAME -->
+      <input
+        type="text"
+        placeholder="Username"
+        formControlName="username"
+      />
+
+      @if (loginForm.get('username')?.touched && loginForm.get('username')?.errors?.['minlength']) {
+        <div class="error">
+          Username must have at least 3 characters
+        </div>
+      }
+
+      <!-- PASSWORD -->
+      <input
+        type="password"
+        placeholder="Password"
+        formControlName="password"
+      />
+
+      @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['minlength']) {
+        <div class="error">
+          Password is required
+        </div>
+      }
+
+      <!-- BUTTON -->
+      <button
+        type="submit"
+        [disabled]="loginForm.invalid"
+        [class.disabled]="loginForm.invalid">
+        Login
+      </button>
+    </form>
+
+    <!-- ✅ BACKEND ERROR -->
+    @if (backendError) {
+      <div class="error">
+        {{ backendError }}
+      </div>
+    }
+
+    <p class="link-text">
+      Not registered yet?
+      <a routerLink="/register">Create an account</a>
+    </p>
+  </div>
+</div>
