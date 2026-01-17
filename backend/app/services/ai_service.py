@@ -19,7 +19,7 @@ class AIService:
             if system_prompt:
                 payload["system"] = system_prompt
             
-            response = requests.post(url, json=payload, timeout=30)
+            response = requests.post(url, json=payload, timeout=200)
             response.raise_for_status()
             
             data = response.json()

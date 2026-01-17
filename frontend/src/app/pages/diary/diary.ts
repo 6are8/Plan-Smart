@@ -8,10 +8,6 @@ import {
 } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
-/**
- * Diary page component
- * Allows the user to submit a daily reflection with mood and text inputs
- */
 @Component({
   selector: 'app-diary',
   standalone: true,
@@ -21,16 +17,12 @@ import { HttpClient } from '@angular/common/http';
 })
 export class Diary {
 
-  /** Reactive form for diary inputs */
   form: FormGroup;
-
-  /** Selected mood value (1–5) */
   mood = 0;
 
-  /** Success feedback message after saving */
   successMessage: string | null = null;
+  errorMessage: string | null = null;
 
-  /** Available mood options */
   moods = [
     { value: 1, icon: '😞' },
     { value: 2, icon: '😕' },
@@ -46,22 +38,18 @@ export class Diary {
     this.form = this.fb.group({
       good: ['', Validators.required],
       improve: ['', Validators.required],
+      howIFeel: ['', Validators.required],
     });
   }
 
-  /**
-   * Sets the selected mood
-   * @param value Mood value from 1 to 5
-   */
   selectMood(value: number): void {
     this.mood = value;
   }
 
-  /**
-   * Submits the diary entry to the backend
-   * Validates form fields and mood selection before sending
-   */
   submit(): void {
+    this.successMessage = null;
+    this.errorMessage = null;
+
     if (this.form.invalid || this.mood === 0) {
       this.form.markAllAsTouched();
       return;
@@ -69,16 +57,23 @@ export class Diary {
 
     const payload = {
       mood: this.mood,
-      good: this.form.value.good,
-      improve: this.form.value.improve,
+      what_went_well: this.form.value.good,
+      what_to_improve: this.form.value.improve,
+      how_i_feel: this.form.value.howIFeel,
     };
 
     this.http
-      .post('http://localhost:5000/diary', payload)
-      .subscribe(() => {
-        this.successMessage = 'Saved ✅';
-        this.form.reset();
-        this.mood = 0;
+      .post('http://localhost:5000/journal/', payload)
+      .subscribe({
+        next: () => {
+          this.successMessage = 'Saved ✅';
+          this.form.reset();
+          this.mood = 0;
+        },
+        error: (err) => {
+          console.error('Failed to save journal entry:', err);
+          this.errorMessage = 'Save failed. Please try again.';
+        }
       });
   }
 }

@@ -33,6 +33,16 @@
       placeholder="go to bed earlier, reduce social media…">
     </textarea>
 
+    <label>How do you feel right now?</label>
+    <textarea
+      formControlName="howIFeel"
+      placeholder="e.g. motivated, tired, stressed…">
+    </textarea>
+
+     @if (errorMessage) {
+    <p class="muted">{{ errorMessage }}</p>
+    }
+
     <button type="button" (click)="submit()">
       Save
     </button>

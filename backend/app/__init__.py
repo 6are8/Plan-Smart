@@ -2,6 +2,8 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from app.config import config
 from app.extensions import db, jwt
+from app.routes.prototype import prototype_bp
+from app.routes.settings import settings_bp
 import logging
 
 logging.basicConfig(
@@ -34,6 +36,8 @@ def create_app(config_name='development'):
     app.register_blueprint(morning_bp, url_prefix='/morning')
     app.register_blueprint(evening_bp, url_prefix='/evening')
     app.register_blueprint(scheduler_bp, url_prefix='/scheduler')
+    app.register_blueprint(settings_bp, url_prefix='/settings')
+    app.register_blueprint(prototype_bp)
     
     # JWT callbacks
     @jwt.token_in_blocklist_loader
