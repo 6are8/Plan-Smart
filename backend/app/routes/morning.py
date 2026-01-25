@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from app.models import User, MorningSession, JournalEntry
 from app.services.ai_service import AIService
 from app.services.weather_service import WeatherService
+from app.services.weekly_analysis_service import WeeklyAnalysisService
 from app.extensions import db
 from datetime import date
 
@@ -12,6 +13,10 @@ morning_bp = Blueprint('morning', __name__)
 @morning_bp.route('/plan', methods=['GET'])
 @jwt_required()
 def get_morning_plan():
+    """
+    Generiert personalisierten Morgenplan
+    NEU: Integriert wöchentliches Profil für bessere Personalisierung
+    """
     try:
         username = get_jwt_identity()
         user = User.find_by_username(username=username)
@@ -35,20 +40,21 @@ def get_morning_plan():
                 'weather': existing_session.weather,
                 'sleep_duration': existing_session.sleep_duration,
                 'generated_at': existing_session.created_at.isoformat(),
-                'cached': True
+                'cached': True,
+                'personalized': False  # Alter Plan, ohne Profil
             }), 200
         
         # Neuen Plan generieren
         print(f"Generating new morning plan for {user.username}...")
         
-        # Wetter holen
+        # 1. Wetter holen
         weather_info, weather_error = WeatherService.get_weather(user.city)
         weather_string = WeatherService.format_weather_string(weather_info) if weather_info else "Wetter nicht verfügbar"
         
         if weather_error:
             print(f"Weather API warning: {weather_error}")
         
-        # Letzte Tagebucheinträge
+        # 2. Letzte Tagebucheinträge
         recent_entries = JournalEntry.query.filter_by(user_id=user.id)\
             .order_by(JournalEntry.date.desc())\
             .limit(3)\
@@ -64,18 +70,29 @@ def get_morning_plan():
                 )
             last_entries_summary = "\n".join(entries_text)
         
-        # Schlaf-Daten
+        # 3. Schlaf-Daten
         sleep_hours = request.args.get('sleep_hours', type=float)
         if not sleep_hours:
             sleep_hours = user.sleep_goal_hours
         
-        # Plan generieren
+        # *** NEU: Weekly Profile holen ***
+        weekly_profile_features = WeeklyAnalysisService.get_user_latest_profile(user.id)
+        
+        profile_used = False
+        if weekly_profile_features:
+            print(f"✅ Using weekly profile for personalization")
+            profile_used = True
+        else:
+            print("ℹ️ No weekly profile available")
+        
+        # 4. Plan generieren (mit Weekly Profile)
         plan, error = AIService.generate_morning_plan(
             user_name=user.username,
             city=user.city,
             weather=weather_string,
             sleep_hours=sleep_hours,
-            last_entries=last_entries_summary
+            last_entries=last_entries_summary,
+            weekly_profile=weekly_profile_features  # NEU!
         )
         
         if error:
@@ -86,13 +103,12 @@ def get_morning_plan():
         
         # 5. Session speichern oder updaten
         if existing_session and force_regenerate:
-
             existing_session.plan_text = plan
             existing_session.weather = weather_string
             existing_session.sleep_duration = sleep_hours
             session = existing_session
         else:
-             # Neue Session
+            # Neue Session
             session = MorningSession(
                 user_id=user.id,
                 date=today,
@@ -110,7 +126,9 @@ def get_morning_plan():
             'weather_details': weather_info,
             'sleep_duration': sleep_hours,
             'generated_at': session.created_at.isoformat(),
-            'cached': False
+            'cached': False,
+            'personalized': profile_used,  # NEU: Zeigt an ob Profil verwendet wurde
+            'profile_summary': WeeklyAnalysisService.format_profile_summary(weekly_profile_features) if weekly_profile_features else None
         }), 200
         
     except Exception as e:
@@ -122,6 +140,9 @@ def get_morning_plan():
 @morning_bp.route('/history', methods=['GET'])
 @jwt_required()
 def get_morning_history():
+    """
+    Holt Historie der Morgenpläne
+    """
     try:
         username = get_jwt_identity()
         user = User.find_by_username(username=username)
@@ -162,6 +183,9 @@ def get_morning_history():
 @morning_bp.route('/stats', methods=['GET'])
 @jwt_required()
 def get_morning_stats():
+    """
+    Statistiken über Morgenpläne
+    """
     try:
         username = get_jwt_identity()
         user = User.find_by_username(username=username)

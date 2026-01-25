@@ -4,7 +4,9 @@ from app.config import config
 from app.extensions import db, jwt
 from app.routes.prototype import prototype_bp
 from app.routes.settings import settings_bp
+from app.routes import auth_bp, journal_bp, morning_bp, evening_bp, scheduler_bp, weekly_bp
 import logging
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -38,6 +40,7 @@ def create_app(config_name='development'):
     app.register_blueprint(scheduler_bp, url_prefix='/scheduler')
     app.register_blueprint(settings_bp, url_prefix='/settings')
     app.register_blueprint(prototype_bp)
+    app.register_blueprint(weekly_bp, url_prefix='/weekly')
     
     # JWT callbacks
     @jwt.token_in_blocklist_loader

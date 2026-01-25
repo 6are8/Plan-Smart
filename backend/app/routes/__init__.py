@@ -7,6 +7,7 @@ from app.routes.today import today_bp
 from app.routes.history import history_bp
 from app.routes.settings import settings_bp
 from app.routes.prototype import prototype_bp
+from app.routes.weekly import weekly_bp 
 
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     "history_bp",
     "settings_bp",
     "prototype_bp",
+    "weekly_bp",
 ]
