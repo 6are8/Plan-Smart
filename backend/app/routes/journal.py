@@ -15,12 +15,12 @@ def create_journal_entry():
         # User aus JWT holen
         username = get_jwt_identity()
         user = User.find_by_username(username=username)
-        
+
         if not user:
             return jsonify({'error': 'User not found'}), 404
-        
+
         data = request.get_json()
-        
+
         # Validierung
         required_fields = ['mood', 'what_went_well', 'what_to_improve', 'how_i_feel']
         if not data or not all(k in data for k in required_fields):
@@ -28,65 +28,57 @@ def create_journal_entry():
                 'error': 'Missing required fields',
                 'required': required_fields
             }), 400
-        
+
         # Mood validieren
         mood = data.get('mood')
         if not isinstance(mood, int) or mood < 1 or mood > 5:
             return jsonify({'error': 'Mood must be between 1 and 5'}), 400
-        
+
         # Zusammenfassungstext für KI
         entry_text = f"""
         Was lief gut: {data['what_went_well']}
         Was kann verbessert werden: {data['what_to_improve']}
         Gefühle: {data['how_i_feel']}
         """
-        
+
         # KI-Analyse
         ai_summary = None
         emotion_detected = None
-        
+
         try:
             summary, error = AIService.analyze_journal_entry(entry_text)
             if not error and summary:
                 ai_summary = summary
         except Exception as e:
             print(f"AI Analysis failed: {e}")
-        
+
         # Emotion Detection
         try:
             emotion_detected = AIService.detect_emotion_simple(data['how_i_feel'])
         except Exception as e:
             print(f"Emotion detection failed: {e}")
             emotion_detected = "unknown"
-        
 
-        entry_date_str = data.get('date')  # إضافة جديدة
-        if entry_date_str:
-           from datetime import datetime
-           entry_date = datetime.strptime(entry_date_str, '%Y-%m-%d').date()
-        else:
-           entry_date = date.today()
-           
         # Eintrag erstellen
         entry = JournalEntry(
             user_id=user.id,
-            date=entry_date,
+            date=date.today(),
             mood=mood,
-            what_went_well=data['what_went_well'],
-            what_to_improve=data['what_to_improve'],
-            how_i_feel=data['how_i_feel'],
+            what_went_well=data["what_went_well"],
+            what_to_improve=data["what_to_improve"],
+            how_i_feel=data["how_i_feel"],
             ai_summary=ai_summary,
-            emotion_detected=emotion_detected
+            emotion_detected=emotion_detected,
         )
-        
+
         db.session.add(entry)
         db.session.commit()
-        
+
         return jsonify({
             'message': 'Journal entry created successfully',
             'entry': entry.to_dict()
         }), 201
-        
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
