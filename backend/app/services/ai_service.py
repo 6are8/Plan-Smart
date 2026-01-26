@@ -73,123 +73,175 @@ class AIService:
             return "neutral"
 
     @staticmethod
-    def extract_weekly_features(journals):
+    
+    def extract_weekly_features(journals, previous_profile=None):
         """
-        Analysiert wöchentliche Tagebucheinträge und extrahiert Verhaltensmuster
-        
-        Args:
-            journals: Liste von JournalEntry-Objekten
-            
-        Returns:
-            dict: Analysierte Features oder None bei Fehler
+        Persona-Based Analysis - Simple & Flexible Version
         """
         if not journals or len(journals) == 0:
             return None
         
-        # 1. Tagebucheinträge zu Text zusammenfassen
+        # 1. Tagebucheinträge formatieren
         journals_text = ""
         for j in journals:
-            # Wochentag auf Deutsch
             weekday = j.date.strftime('%A')
-            mood_emoji = "😊" if j.mood and j.mood >= 4 else "😐" if j.mood == 3 else "😔"
+            mood = "😊" if j.mood >= 4 else "😐" if j.mood == 3 else "😔"
             
-            # Alle relevanten Felder sammeln
-            entry_parts = []
+            journals_text += f"[{weekday}] {mood} Stimmung {j.mood}/5:\n"
             if j.what_went_well:
-                entry_parts.append(f"Gut: {j.what_went_well}")
+                journals_text += f"  ✅ {j.what_went_well}\n"
             if j.what_to_improve:
-                entry_parts.append(f"Verbesserung: {j.what_to_improve}")
+                journals_text += f"  ⚠️ {j.what_to_improve}\n"
             if j.how_i_feel:
-                entry_parts.append(f"Gefühle: {j.how_i_feel}")
-            
-            content = " | ".join(entry_parts)
-            journals_text += f"- [{weekday}, {j.date.strftime('%d.%m.')}] {mood_emoji} Stimmung ({j.mood}/5): {content}\n"
+                journals_text += f"  💭 {j.how_i_feel}\n"
+            journals_text += "\n"
         
-        # 2. System Prompt definieren
-        system_prompt = """Du bist ein erfahrener KI-Psychologe und Datenanalyst. 
-Deine Aufgabe ist es, Muster im Verhalten zu erkennen und strukturierte Daten zu liefern.
-Du bist präzise, objektiv und arbeitest ausschließlich mit den gegebenen Informationen."""
+        # 2. Vorherige Traits und Notizen
+        previous_traits = []
+        previous_notes = []
         
-        # 3. Hauptprompt für die Analyse
+        if previous_profile and previous_profile.get('persona'):
+            previous_traits = previous_profile['persona'].get('traits', [])
+            previous_notes = previous_profile['persona'].get('coaching_notes', [])
+        
+        # 3. System Prompt
+        system_prompt = """Du bist ein aufmerksamer Personal Coach.
+    Beobachte Verhaltensmuster und erstelle ein prägnantes Persönlichkeitsprofil."""
+        
+        # 4. Der einfache Prompt
         prompt = f"""
-Analysiere die folgenden Tagebucheinträge einer Woche:
+    Analysiere diese Tagebucheinträge:
 
-{journals_text}
+    {journals_text}
 
-WICHTIG - STRENGE REGELN:
-- Extrahiere nur wiederkehrende Muster, die KLAR erkennbar sind
-- Wenn etwas plausibel abgeleitet werden kann (z.B. "viel Arbeit" → workload: hoch), darfst du es ergänzen
-- KEINE Diagnosen, KEINE unplausiblen Informationen
-- Antworte NUR in einem validen JSON-Objekt
-- Wenn keine Information erkennbar ist → null
-- Listen können leer sein: []
+    {'─'*60}
+    LETZTE WOCHE hattest du erkannt:
+    Traits: {previous_traits if previous_traits else "Noch keine"}
+    Notizen: {previous_notes if previous_notes else "Keine"}
+    {'─'*60}
 
-Antworte im folgenden JSON-Format (EXAKT so):
-{{
-  "stress_level": "hoch | mittel | niedrig | null",
-  "sleep_quality": "gut | schlecht | null",
-  "energy_pattern": "morgens | abends | schwankend | null",
-  "planning_style": "strukturiert | flexibel | null",
-  "emotional_stability": "stabil | labil | null",
-  "focus_level": "hoch | niedrig | null",
-  "workload": "hoch | mittel | niedrig | null",
-  "dominant_interests": ["Sport", "Arbeit", "Lernen"] | null,
-  "motivation_triggers": ["klare Ziele", "Pausen", "Erfolge"] | null,
-  "plan_preference": "detailliert | flexibel | null",
-  "risk_flags": ["Überforderung", "Erschöpfung"] | null
-}}
+    DEINE AUFGABE:
+    Erstelle/aktualisiere das Persona-Profil dieser Person.
 
-Antworte NUR mit dem JSON-Objekt, OHNE zusätzlichen Text.
-"""
+    1️⃣ TRAITS (3-5 prägnante Eigenschaften):
+    Beschreibe die Person mit kurzen Tags (CamelCase, Englisch).
+    
+    Beispiele guter Traits:
+    - "NightOwl" (produktiv abends)
+    - "MorningPerson" (früh wach, morgens aktiv)
+    - "GymMotivationNeeded" (will Sport, schiebt oft auf)
+    - "StructureLover" (braucht klaren Plan)
+    - "DeepFocusPreferred" (mag lange Konzentrationsphasen)
+    
+    Regeln:
+    • Maximal 5 Traits
+    • Kurz & prägnant (1-3 Wörter pro Trait)
+    • Basiere sie auf ECHTEN Beobachtungen
+    • Behalte alte Traits wenn noch zutreffend
+    • Lösche Traits wenn widerlegt
+    • Füge neue hinzu wenn entdeckt
+
+    2️⃣ COACHING NOTES (Genau 3 Anweisungen):
+    Wie soll der Tages-Planer diese Person behandeln?
+    
+    Format: "[Was tun] - [Warum]"
+    Max. 60 Zeichen pro Note!
+    
+    Beispiele:
+    ✅ "Sport abends vorschlagen - nutzt NightOwl-Energie"
+    ✅ "Kleine Erfolge loben - braucht Bestätigung"
+    ✅ "Morgen-Meetings meiden - braucht Anlaufzeit"
+
+    3️⃣ TREND (1 kurzer Satz, max 50 Zeichen):
+    Wie entwickelt sich die Person?
+    
+    Beispiele:
+    ✅ "Besser: Sport 3x gemacht!"
+    ✅ "Stagniert: Viele Pläne, wenig Umsetzung"
+
+    4️⃣ TOP-PRIORITÄT MORGEN (1 Satz, max 80 Zeichen):
+    Was ist DIE wichtigste Sache für morgen?
+    
+    Beispiele:
+    ✅ "10min Yoga um 7:00 - Sport-Gewohnheit starten"
+    ✅ "Wichtigste Aufgabe bis 10:00 erledigen"
+
+    {'─'*60}
+    ANTWORTE NUR MIT DIESEM JSON (kein Text davor/danach):
+    {'─'*60}
+    {{
+    "persona": {{
+        "traits": ["Trait1", "Trait2", "Trait3"],
+        "coaching_notes": [
+        "Note 1 hier",
+        "Note 2 hier", 
+        "Note 3 hier"
+        ]
+    }},
+    "trend": "Kurzer Trend-Satz",
+    "priority": "Priorität für morgen"
+    }}
+
+    WICHTIG:
+    ✓ Traits: 3-5 Stück, kurz, CamelCase
+    ✓ Notes: Exakt 3, je max 60 Zeichen
+    ✓ Trend: Max 50 Zeichen
+    ✓ Priority: Max 80 Zeichen
+    """
         
         try:
-            # 4. AI API aufrufen
+            # 5. AI aufrufen
             raw_response, error = AIService.generate_text(prompt, system_prompt)
             
             if error:
-                print(f"AI Service Error: {error}")
+                print(f"AI Error: {error}")
                 return None
             
-            if not raw_response:
-                print("AI Warning: Empty response")
-                return None
-            
-            # 5. JSON extrahieren (falls AI zusätzlichen Text zurückgibt)
-            # Suche nach dem ersten { bis zum letzten }
+            # 6. JSON extrahieren
+            import re
             match = re.search(r'\{.*\}', raw_response, re.DOTALL)
             
-            if match:
-                clean_json = match.group(0)
-                features = json.loads(clean_json)
-                
-                # 6. Validierung der Struktur
-                required_keys = [
-                    'stress_level', 'sleep_quality', 'energy_pattern',
-                    'planning_style', 'emotional_stability', 'focus_level',
-                    'workload', 'dominant_interests', 'motivation_triggers',
-                    'plan_preference', 'risk_flags'
-                ]
-                
-                # Prüfen ob alle Keys vorhanden sind
-                if not all(key in features for key in required_keys):
-                    print("AI Warning: Missing keys in response")
-                    # Fehlende Keys mit null ergänzen
-                    for key in required_keys:
-                        if key not in features:
-                            features[key] = None
-                
-                return features
-            else:
-                print(f"AI Warning: No JSON found in response: {raw_response[:200]}")
+            if not match:
+                print("No JSON found")
                 return None
-                
-        except json.JSONDecodeError as e:
-            print(f"JSON Parse Error: {e}")
-            print(f"Raw response was: {raw_response[:500]}")
-            return None
+            
+            features = json.loads(match.group(0))
+            
+            # 7. Einfache Validierung (nur Limits, keine Listen)
+            if 'persona' not in features:
+                return None
+            
+            persona = features['persona']
+            
+            # Limit traits to 5
+            if 'traits' in persona and len(persona['traits']) > 5:
+                persona['traits'] = persona['traits'][:5]
+            
+            # Ensure exactly 3 coaching notes
+            if 'coaching_notes' in persona:
+                notes = persona['coaching_notes']
+                if len(notes) > 3:
+                    notes = notes[:3]
+                elif len(notes) < 3:
+                    while len(notes) < 3:
+                        notes.append("Unterstütze bei der Zielerreichung")
+                # Trim each note
+                persona['coaching_notes'] = [n[:60] for n in notes]
+            
+            # Trim trend and priority
+            if 'trend' in features:
+                features['trend'] = features['trend'][:50]
+            
+            if 'priority' in features:
+                features['priority'] = features['priority'][:80]
+            
+            return features
+            
         except Exception as e:
-            print(f"AI Service Error in extract_weekly_features: {e}")
+            print(f"Error: {e}")
             return None
+        
+
 
     @staticmethod
     def generate_morning_plan(user_name, city, weather=None, sleep_hours=None, 

@@ -59,10 +59,18 @@ def create_journal_entry():
             print(f"Emotion detection failed: {e}")
             emotion_detected = "unknown"
         
+
+        entry_date_str = data.get('date')  # إضافة جديدة
+        if entry_date_str:
+           from datetime import datetime
+           entry_date = datetime.strptime(entry_date_str, '%Y-%m-%d').date()
+        else:
+           entry_date = date.today()
+           
         # Eintrag erstellen
         entry = JournalEntry(
             user_id=user.id,
-            date=date.today(),
+            date=entry_date,
             mood=mood,
             what_went_well=data['what_went_well'],
             what_to_improve=data['what_to_improve'],
