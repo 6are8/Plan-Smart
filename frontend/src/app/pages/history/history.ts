@@ -6,20 +6,32 @@ import { HttpClient } from '@angular/common/http';
  * Short information shown in the history list
  */
 interface HistoryItem {
-  id: number;
-  date: string;     // ISO date string
-  summary: string;  // AI-generated summary
+  id: string;
+  date: string;      // ISO date string
+  summary: string;   // AI-generated summary (or fallback)
 }
 
 /**
  * Full details for a single diary entry
  */
 interface HistoryDetails {
-  id: number;
-  date: string;     // ISO date string
-  mood: number;     // Mood value from 1 to 5
-  good: string;     // What went well
-  improve: string;  // What can be improved
+  id: string;
+  date: string;
+  mood: number;         // 1..5
+  good: string;
+  improve: string;
+  howIFeel?: string;
+  aiSummary?: string | null;
+}
+
+/**
+ * Backend response shape for GET /history
+ */
+interface BackendHistoryResponse {
+  morning_sessions?: any[];
+  journal_entries?: any[];
+  evening_prompts?: any[];
+  limit?: number;
 }
 
 @Component({
@@ -42,52 +54,75 @@ export class History implements OnInit {
 
   constructor(private http: HttpClient) {}
 
-  /**
-   * Lifecycle hook
-   * Loads the history list on component initialization
-   */
   ngOnInit(): void {
     this.loadHistory();
   }
 
   /**
-   * Loads all diary history entries from the backend
-   * Entries are sorted by date (newest first)
+   * Loads all diary history entries from the backend (aggregated endpoint)
+   * Then maps journal_entries -> HistoryItem list
    */
   loadHistory(): void {
+    this.loading = true;
+
     this.http
-      .get<HistoryItem[]>('http://localhost:5000/history')
-      .subscribe(res => {
-        this.entries = res.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-        );
-        this.loading = false;
+      .get<BackendHistoryResponse>('http://localhost:5000/history?limit=30')
+      .subscribe({
+        next: (res) => {
+          const journalEntries = Array.isArray(res?.journal_entries) ? res.journal_entries : [];
+
+          // Map backend journal entry -> UI list item
+          const mapped: HistoryItem[] = journalEntries.map((e: any) => ({
+            id: String(e.id),
+            date: String(e.date),
+            summary: String(e.ai_summary ?? 'No AI summary available.')
+          }));
+
+          // Sort newest first
+          this.entries = mapped.sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
+
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Failed to load history:', err);
+          this.entries = [];
+          this.loading = false;
+        }
       });
   }
 
   /**
    * Opens the details modal for a specific diary entry
-   * @param id Entry ID
+   * Uses the existing backend endpoint: GET /journal/<id>
    */
-  openDetails(id: number): void {
+  openDetails(id: string): void {
     this.http
-      .get<HistoryDetails>(`http://localhost:5000/history/${id}`)
-      .subscribe(res => {
-        this.selectedEntry = res;
+      .get<any>(`http://localhost:5000/journal/${id}`)
+      .subscribe({
+        next: (res) => {
+          const entry = res?.entry ?? res; // depending on your backend wrapper
+          this.selectedEntry = {
+            id: String(entry.id),
+            date: String(entry.date),
+            mood: Number(entry.mood),
+            good: String(entry.what_went_well ?? ''),
+            improve: String(entry.what_to_improve ?? ''),
+            howIFeel: String(entry.how_i_feel ?? ''),
+            aiSummary: entry.ai_summary ?? null
+          };
+        },
+        error: (err) => {
+          console.error('Failed to load entry details:', err);
+        }
       });
   }
 
-  /**
-   * Closes the details modal
-   */
   closeDetails(): void {
     this.selectedEntry = null;
   }
 
-  /**
-   * Formats a short date for the history list
-   * Example: Mon, Sep 18
-   */
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'short',
@@ -96,10 +131,6 @@ export class History implements OnInit {
     });
   }
 
-  /**
-   * Formats a full date for the details modal
-   * Example: Monday, September 18, 2025
-   */
   formatDateFull(date: string): string {
     return new Date(date).toLocaleDateString('en-US', {
       weekday: 'long',
@@ -109,10 +140,6 @@ export class History implements OnInit {
     });
   }
 
-  /**
-   * Returns an emoji icon for a given mood value
-   * @param mood Mood value from 1 to 5
-   */
   moodIcon(mood: number): string {
     return ['😞', '😕', '😐', '🙂', '😄'][mood - 1] ?? '😐';
   }

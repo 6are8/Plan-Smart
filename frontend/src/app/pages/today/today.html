@@ -11,56 +11,86 @@
 <!-- GRID -->
 <section class="grid">
 
-  <!-- WEATHER -->
+  <!-- WEATHER (from morning_plan.weather) -->
   <div class="card weather">
     <h3>Weather in {{ city || '...' }}</h3>
 
-    @if (weather) {
+    @if (loadingToday) {
+      <div class="placeholder">Loading…</div>
+    } @else if (morningWeather) {
       <div class="weather-row">
         <div class="icon">☀️</div>
         <div>
-          <strong>
-            {{ weather.temperature }}°C · {{ weather.description }}
-          </strong>
+          <strong>{{ morningWeather }}</strong>
           <div class="muted">
-            Feels like {{ weather.feels_like }}° ·
-            Wind {{ weather.wind }} m/s
+            Source: morning plan
           </div>
         </div>
       </div>
     } @else {
       <div class="placeholder">
-        Weather data is loading…
+        Weather is not available yet.
       </div>
     }
   </div>
 
-  <!-- QUOTE -->
+  <!-- EVENING PROMPT -->
   <div class="card">
-    <h3>Quote of the Day</h3>
+    <h3>Evening Prompt 🌙</h3>
 
-    @if (quote) {
-      <p class="quote">“{{ quote }}”</p>
+    @if (loadingToday) {
+      <p class="placeholder">Loading…</p>
+    } @else if (eveningPromptText) {
+      <p class="quote">“{{ eveningPromptText }}”</p>
     } @else {
-      <p class="placeholder">Quote is loading…</p>
+      <p class="placeholder">No evening prompt yet.</p>
     }
   </div>
 
-  <!-- PLAN -->
+  <!-- MORNING PLAN (generated via /morning/plan then reloaded via /today) -->
   <div class="card">
     <h3>AI Plan for Today 🤖</h3>
 
-    @if (plan) {
-      <ul>
-        @for (item of plan.items; track item) {
-          <li>{{ item }}</li>
-        }
-      </ul>
+    @if (generatingMorningPlan) {
+      <div class="placeholder">
+        Generating your plan… (calling /morning/plan)
+      </div>
+    } @else if (loadingToday) {
+      <div class="placeholder">
+        Loading…
+      </div>
+    } @else if (morningPlanText) {
+      <!-- plan_text is a big string; display as-is -->
+      <p class="quote" style="white-space: pre-wrap; margin: 0;">
+        {{ morningPlanText }}
+      </p>
     } @else {
       <div class="placeholder">
-        Your personal daily plan is being prepared…
+        Plan not available yet.
       </div>
     }
   </div>
 
+</section>
+
+<!-- OPTIONAL: show last journal summary below cards -->
+<section style="margin-top: 24px;">
+  <div class="card">
+    <h3>Last Journal Summary 📝</h3>
+
+    @if (loadingToday) {
+      <p class="placeholder">Loading…</p>
+    } @else if (journalSummary) {
+      <p class="quote" style="white-space: pre-wrap; margin: 0;">
+        {{ journalSummary }}
+      </p>
+      @if (journalMood) {
+        <p class="muted" style="margin-top: 10px;">
+          Mood: {{ journalMood }}/5
+        </p>
+      }
+    } @else {
+      <p class="placeholder">No journal entry found for today.</p>
+    }
+  </div>
 </section>

@@ -67,6 +67,7 @@ export class Diary {
 
   /** Success feedback message */
   successMessage: string | null = null;
+  errorMessage: string | null = null;
 
   /**
    * Preset moods used for:
@@ -90,6 +91,7 @@ export class Diary {
     this.form = this.fb.group({
       good: ['', Validators.required],
       improve: ['', Validators.required],
+      howIFeel: ['', Validators.required],
     });
   }
 
