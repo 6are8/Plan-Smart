@@ -40,7 +40,15 @@
       <div class="modal-section">
         <strong>Mood:</strong>
         <span class="mood">{{ moodIcon(selectedEntry.mood) }}</span>
+        <span class="mood-label">{{ selectedEntry.mood }}</span>
       </div>
+
+      @if (selectedEntry.aiSummary) {
+        <div class="modal-section">
+          <strong>AI summary:</strong>
+          <p>{{ selectedEntry.aiSummary }}</p>
+        </div>
+      }
 
       <div class="modal-section">
         <strong>What went well:</strong>
@@ -56,3 +64,4 @@
 
   </div>
 }
+
