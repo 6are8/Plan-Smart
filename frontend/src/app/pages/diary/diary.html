@@ -2,19 +2,60 @@
 
   <h2>Evening Reflection ✍️</h2>
 
-  <!-- MOOD -->
-  <div class="mood">
-    <span class="label">Mood (1–5):</span>
+  <!-- MOOD (2D Mood Circle + Emotion) -->
+  <div class="mood2d">
+    <span class="label">Choose your mood:</span>
 
-    <div class="mood-icons">
-      @for (m of moods; track m.value) {
-        <span
-          class="emoji"
-          [class.active]="mood === m.value"
-          (click)="selectMood(m.value)">
-          {{ m.icon }}
-        </span>
-      }
+    <div class="mood2d-layout">
+      <div class="axis top">High energy</div>
+      <div class="axis left">Unpleasant</div>
+
+      <div
+        class="mood2d-circle"
+        #circle
+        (pointerdown)="onCirclePointerDown($event)"
+        (pointermove)="onCirclePointerMove($event)"
+        (pointerup)="onCirclePointerUp()"
+        (pointercancel)="onCirclePointerUp()"
+        (lostpointercapture)="onCirclePointerUp()"
+      >
+        <div class="crosshair"></div>
+
+        <div
+          class="mood2d-dot"
+          [style.left.%]="dotLeftPct"
+          [style.top.%]="dotTopPct"
+          [class.is-set]="moodIsSet"
+        ></div>
+
+        <!-- маленькая подсказка внутри -->
+        <div class="mood2d-centerhint" *ngIf="!moodIsSet">
+          Tap / drag
+        </div>
+      </div>
+
+      <div class="axis right">Pleasant</div>
+      <div class="axis bottom">Low energy</div>
+    </div>
+
+    <div class="mood2d-readout" [class.invalid]="moodTouched && !moodIsSet">
+    <span class="mood-badge">
+      <span class="mood-emoji">{{ moodEmoji }}</span>
+      <b>{{ moodLabel }}</b>
+    </span>
+
+      <span class="hint error" *ngIf="moodTouched && !moodIsSet">Select your mood</span>
+    </div>
+
+    <div class="mood-presets">
+      <button type="button" class="preset" (click)="setPreset('Excited')">⚡ Excited</button>
+      <button type="button" class="preset" (click)="setPreset('Happy')">😄 Happy</button>
+      <button type="button" class="preset" (click)="setPreset('Calm')">😌 Calm</button>
+      <button type="button" class="preset" (click)="setPreset('Focused')">🎯 Focused</button>
+      <button type="button" class="preset" (click)="setPreset('Tired')">😴 Tired</button>
+      <button type="button" class="preset" (click)="setPreset('Sad')">😢 Sad</button>
+      <button type="button" class="preset" (click)="setPreset('Stressed')">😖 Stressed</button>
+      <button type="button" class="preset" (click)="setPreset('Angry')">😠 Angry</button>
     </div>
   </div>
 
@@ -27,7 +68,7 @@
       placeholder="e.g. finished a presentation, 2× focus sessions…">
     </textarea>
 
-    <label>What could be improved tomorrow?</label>
+    <label>What are the plans for tomorrow?</label>
     <textarea
       formControlName="improve"
       placeholder="go to bed earlier, reduce social media…">
