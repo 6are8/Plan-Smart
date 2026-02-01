@@ -1,10 +1,11 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app.models import User
+from app.models import User, UserSettings
 from app.extensions import db
 
 settings_bp = Blueprint("settings", __name__)
+
 
 @settings_bp.route("", methods=["GET"])
 @jwt_required()
@@ -16,12 +17,19 @@ def get_settings():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
+        settings = UserSettings.query.filter_by(user_id=user.id).first()
+        if not settings:
+            settings = UserSettings(user_id=user.id)
+            db.session.add(settings)
+            db.session.commit()
+
         return jsonify({
             "user": {
                 "username": user.username,
                 "city": user.city,
                 "sleep_goal_hours": user.sleep_goal_hours
-            }
+            },
+            "settings": settings.to_dict()
         }), 200
 
     except Exception as e:
@@ -48,9 +56,17 @@ def update_city():
         user.city = city
         db.session.commit()
 
+        # Ensure settings row exists
+        settings = UserSettings.query.filter_by(user_id=user.id).first()
+        if not settings:
+            settings = UserSettings(user_id=user.id)
+            db.session.add(settings)
+            db.session.commit()
+
         return jsonify({
             "message": "City updated",
-            "user": {"username": user.username, "city": user.city, "sleep_goal_hours": user.sleep_goal_hours}
+            "user": {"username": user.username, "city": user.city, "sleep_goal_hours": user.sleep_goal_hours},
+            "settings": settings.to_dict()
         }), 200
 
     except Exception as e:
@@ -62,7 +78,7 @@ def update_city():
 @jwt_required()
 def update_notifications():
     """
-    Attend par exemple:
+    Expected:
     {
       "morning_time": "07:30",
       "evening_time": "21:00"
@@ -82,8 +98,13 @@ def update_notifications():
         if not user:
             return jsonify({"error": "User not found"}), 404
 
-        user.morning_time = morning_time
-        user.evening_time = evening_time
+        settings = UserSettings.query.filter_by(user_id=user.id).first()
+        if not settings:
+            settings = UserSettings(user_id=user.id)
+            db.session.add(settings)
+
+        settings.morning_time = morning_time
+        settings.evening_time = evening_time
 
         db.session.commit()
 
@@ -92,10 +113,9 @@ def update_notifications():
             "user": {
                 "username": user.username,
                 "city": user.city,
-                "sleep_goal_hours": user.sleep_goal_hours,
-                "morning_time": getattr(user, "morning_time", None),
-                "evening_time": getattr(user, "evening_time", None),
-            }
+                "sleep_goal_hours": user.sleep_goal_hours
+            },
+            "settings": settings.to_dict()
         }), 200
 
     except Exception as e:

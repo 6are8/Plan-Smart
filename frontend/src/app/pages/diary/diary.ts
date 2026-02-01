@@ -9,7 +9,8 @@ import {
 import { HttpClient } from '@angular/common/http';
 
 /**
- * Supported mood labels sent to the backend
+ * Supported mood labels used in the UI.
+ * Backend will receive a numeric mood value (1–5).
  */
 type MoodName =
   | 'Excited'
@@ -21,16 +22,6 @@ type MoodName =
   | 'Stressed'
   | 'Angry';
 
-/**
- * Diary component
- *
- * Allows the user to:
- * - select a mood via a 2D mood circle or preset buttons
- * - write daily reflections
- * - submit the entry to the backend
- *
- * Only the mood label (string) is sent to the backend.
- */
 @Component({
   selector: 'app-diary',
   standalone: true,
@@ -39,6 +30,7 @@ type MoodName =
   styleUrl: './diary.css',
 })
 export class Diary {
+
   /** Reactive form for diary text inputs */
   form: FormGroup;
 
@@ -65,15 +57,12 @@ export class Diary {
   moodLabel: MoodName | 'Not set' = 'Not set';
   moodEmoji = '🙂';
 
-  /** Success feedback message */
+  /** Success / error messages */
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
   /**
-   * Preset moods used for:
-   * - quick selection
-   * - mapping pointer position to nearest mood
-   *
+   * Preset moods for quick selection and nearest mapping.
    * Values are NOT sent to the backend.
    */
   private presets: Record<MoodName, { v: number; a: number; emoji: string }> = {
@@ -88,15 +77,15 @@ export class Diary {
   };
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
+    // ✅ removed "howIFeel" because mood circle already captures it
     this.form = this.fb.group({
       good: ['', Validators.required],
       improve: ['', Validators.required],
-      howIFeel: ['', Validators.required],
     });
   }
 
   /**
-   * Selects a mood preset directly
+   * Selects a mood preset directly.
    */
   setPreset(name: MoodName): void {
     this.moodTouched = true;
@@ -141,8 +130,7 @@ export class Diary {
   }
 
   /**
-   * Updates mood selection based on pointer position
-   * Used only for UI interaction, not sent to backend
+   * Updates mood selection based on pointer position (UI only).
    */
   private setMoodFromPointer(ev: PointerEvent): void {
     const el = this.circleRef?.nativeElement;
@@ -177,8 +165,7 @@ export class Diary {
   }
 
   /**
-   * Determines the closest preset mood
-   * based on current internal coordinates
+   * Determines the closest preset mood based on the current coordinates.
    */
   private updateLabelFromNearestPreset(): void {
     let best: MoodName = 'Happy';
@@ -200,39 +187,78 @@ export class Diary {
     this.moodEmoji = this.presets[best].emoji;
   }
 
-  /**
-   * Submits the diary entry to the backend
-   *
-   * Payload contains:
-   * - mood (string label)
-   * - reflection text fields
-   */
+
+  private moodScoreFromLabel(label: MoodName): number {
+    // Rough mapping to 1..5
+    switch (label) {
+      case 'Happy':
+      case 'Excited':
+        return 5;
+      case 'Focused':
+      case 'Calm':
+        return 4;
+      case 'Tired':
+        return 3;
+      case 'Stressed':
+        return 2;
+      case 'Sad':
+      case 'Angry':
+        return 1;
+      default:
+        return 3;
+    }
+  }
+
+  
   submit(): void {
+    this.errorMessage = null;
+    this.successMessage = null;
+
     this.moodTouched = true;
 
-    if (this.form.invalid || !this.moodIsSet) {
-      this.form.markAllAsTouched();
+    if (!this.moodIsSet) {
+      this.errorMessage = 'Please select your mood.';
       return;
     }
 
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMessage = 'Please fill all fields before saving.';
+      return;
+    }
+
+    const moodScore = this.moodScoreFromLabel(this.moodLabel as MoodName);
+
     const payload = {
-      mood: this.moodLabel,
-      good: this.form.value.good,
-      improve: this.form.value.improve,
+      mood: moodScore,
+      what_went_well: this.form.value.good,
+      what_to_improve: this.form.value.improve,
+      how_i_feel: this.moodLabel  // ✅ Required by backend
     };
 
-    this.http.post('http://localhost:5000/diary', payload).subscribe(() => {
-      this.successMessage = 'Saved ✅';
-      this.form.reset();
+    this.http.post('http://localhost:5000/journal/', payload).subscribe({
+      next: (res) => {
+        console.log('✅ Journal entry saved:', res);
+        this.successMessage = 'Saved ✅';
+        this.form.reset();
 
-      this.moodValence = 0;
-      this.moodArousal = 0;
-      this.moodIsSet = false;
-      this.moodTouched = false;
-      this.dotLeftPct = 50;
-      this.dotTopPct = 50;
-      this.moodLabel = 'Not set';
-      this.moodEmoji = '🙂';
+        // Reset mood UI
+        this.moodValence = 0;
+        this.moodArousal = 0;
+        this.moodIsSet = false;
+        this.moodTouched = false;
+        this.dotLeftPct = 50;
+        this.dotTopPct = 50;
+        this.moodLabel = 'Not set';
+        this.moodEmoji = '🙂';
+      },
+      error: (err) => {
+        console.error('❌ Save failed:', err);
+        this.errorMessage =
+          err?.error?.error ??
+          err?.error?.message ??
+          'Saving failed. Please try again.';
+      }
     });
   }
 }

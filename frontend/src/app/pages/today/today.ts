@@ -189,4 +189,56 @@ export class Today implements OnInit {
       return null;
     }
   }
+
+  /**
+   * Returns emoji based on weather description.
+   * This makes the weather card more visual.
+   */
+  getWeatherEmoji(): string {
+    if (!this.morningWeather) return '🌤️';
+    
+    const weather = this.morningWeather.toLowerCase();
+    
+    if (weather.includes('sun') || weather.includes('clear')) return '☀️';
+    if (weather.includes('cloud')) return '☁️';
+    if (weather.includes('rain') || weather.includes('regen')) return '🌧️';
+    if (weather.includes('snow') || weather.includes('schnee')) return '❄️';
+    if (weather.includes('storm') || weather.includes('gewitter')) return '⛈️';
+    if (weather.includes('fog') || weather.includes('nebel')) return '🌫️';
+    
+    return '🌤️'; // Default
+  }
+
+  /**
+   * Extracts temperature from weather string if present.
+   * E.g., "0.9°C, Mäßiger schnee" → "0.9°C"
+   */
+  getTemperature(): string {
+    if (!this.morningWeather) return '';
+    
+    const match = this.morningWeather.match(/(-?\d+\.?\d*)°C/);
+    return match ? match[1] + '°C' : '';
+  }
+
+  /**
+   * Extracts weather condition from weather string.
+   * E.g., "0.9°C, Mäßiger schnee" → "Mäßiger schnee"
+   */
+  getWeatherCondition(): string {
+    if (!this.morningWeather) return '';
+    
+    const parts = this.morningWeather.split(',');
+    return parts.length > 1 ? parts[1].trim() : this.morningWeather;
+  }
+
+  /**
+   * Returns emoji based on mood rating.
+   */
+  getMoodEmoji(mood: number): string {
+    if (mood >= 5) return '😄';
+    if (mood >= 4) return '🙂';
+    if (mood >= 3) return '😐';
+    if (mood >= 2) return '😕';
+    return '😢';
+  }
 }

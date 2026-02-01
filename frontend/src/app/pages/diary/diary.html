@@ -2,7 +2,7 @@
 
   <h2>Evening Reflection ✍️</h2>
 
-  <!-- MOOD (2D Mood Circle + Emotion) -->
+  <!-- MOOD (2D Mood Circle + Presets) -->
   <div class="mood2d">
     <span class="label">Choose your mood:</span>
 
@@ -28,7 +28,6 @@
           [class.is-set]="moodIsSet"
         ></div>
 
-        <!-- маленькая подсказка внутри -->
         <div class="mood2d-centerhint" *ngIf="!moodIsSet">
           Tap / drag
         </div>
@@ -39,12 +38,14 @@
     </div>
 
     <div class="mood2d-readout" [class.invalid]="moodTouched && !moodIsSet">
-    <span class="mood-badge">
-      <span class="mood-emoji">{{ moodEmoji }}</span>
-      <b>{{ moodLabel }}</b>
-    </span>
+      <span class="mood-badge">
+        <span class="mood-emoji">{{ moodEmoji }}</span>
+        <b>{{ moodLabel }}</b>
+      </span>
 
-      <span class="hint error" *ngIf="moodTouched && !moodIsSet">Select your mood</span>
+      <span class="hint error" *ngIf="moodTouched && !moodIsSet">
+        Select your mood
+      </span>
     </div>
 
     <div class="mood-presets">
@@ -68,14 +69,14 @@
       placeholder="e.g. finished a presentation, 2× focus sessions…">
     </textarea>
 
-    <label>What are the plans for tomorrow?</label>
+    <label>What could be improved tomorrow?</label>
     <textarea
       formControlName="improve"
       placeholder="go to bed earlier, reduce social media…">
     </textarea>
 
-     @if (errorMessage) {
-    <p class="muted">{{ errorMessage }}</p>
+    @if (errorMessage) {
+      <p class="muted">{{ errorMessage }}</p>
     }
 
     <button type="button" (click)="submit()">
