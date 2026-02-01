@@ -7,7 +7,18 @@ class AIService:
     def generate_text(prompt, system_prompt=None):
         try:
             ollama_url = os.getenv('OLLAMA_API_URL', 'http://localhost:11434')
-            ollama_model = os.getenv('OLLAMA_MODEL', 'gemma3:4b')
+            ollama_model = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+
+            # ============ DEBUG START ============
+            print("\n" + "=" * 70)
+            print("🤖 AI SERVICE CALLED")
+            print("=" * 70)
+            print(f"📍 Ollama URL: {ollama_url}")
+            print(f"🏷️  Model: {ollama_model}")
+            print(f"📝 Prompt (first 100 chars): {prompt[:100]}...")
+            if system_prompt:
+                print(f"⚙️  System Prompt: {system_prompt[:100]}...")
+            # ============ DEBUG END ============
 
             url = f"{ollama_url}/api/generate"
             payload = {
@@ -19,16 +30,37 @@ class AIService:
             if system_prompt:
                 payload["system"] = system_prompt
 
+            print(f"\n📤 Sending request to Ollama...")
             response = requests.post(url, json=payload, timeout=200)
+
+            print(f"📥 Response Status: {response.status_code}")
+
             response.raise_for_status()
 
             data = response.json()
-            return data.get('response', ''), None
+            result = data.get('response', '')
+
+            print(f"✅ Ollama response received!")
+            print(f"📊 Length: {len(result)} characters")
+            print(f"📄 First 200 chars: {result[:200]}...")
+            print("=" * 70 + "\n")
+
+            return result, None
 
         except requests.exceptions.Timeout:
+            print("\n❌ TIMEOUT ERROR!")
+            print("=" * 70 + "\n")
             return None, "AI request timed out"
+
         except requests.exceptions.RequestException as e:
+            print(f"\n❌ REQUEST ERROR: {str(e)}")
+            print("=" * 70 + "\n")
             return None, f"AI service error: {str(e)}"
+
+        except Exception as e:
+            print(f"\n❌ UNKNOWN ERROR: {str(e)}")
+            print("=" * 70 + "\n")
+            return None, f"Unexpected error: {str(e)}"
 
     @staticmethod
     def detect_emotion_simple(text):

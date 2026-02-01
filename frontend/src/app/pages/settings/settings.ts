@@ -1,7 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';  // ← ChangeDetectorRef hinzufügen
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+
+
 
 /**
  * Settings component
@@ -14,6 +16,8 @@ import { HttpClient } from '@angular/common/http';
  * It loads the settings from the backend on initialization
  * and allows the user to update them via HTTP requests.
  */
+
+
 @Component({
   selector: 'app-settings',
   standalone: true,
@@ -27,51 +31,55 @@ import { HttpClient } from '@angular/common/http';
 })
 export class Settings implements OnInit {
 
-  /**
-   * The city selected by the user.
-   * Displayed in the settings view and sent to the backend when updated.
-   */
   city = 'Your city';
-
-  /**
-   * Time for morning AI plan.
-   */
   morningTime = '07:30';
-
-  /**
-   * Time for evening reflection.
-   */
   eveningTime = '21:00';
 
-  /**
-   * Creates an instance of the Settings component.
-   *
-   * @param http HttpClient used for communicating with the backend API
-   */
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private cdr: ChangeDetectorRef  // ← NEU
+  ) {
+    console.log('🏗️ Settings Constructor called');
+  }
 
-  /**
-   * Angular lifecycle hook.
-   * Called once after the component has been initialized.
-   * Loads the saved settings from the backend.
-   */
   ngOnInit(): void {
+    console.log('🚀 Settings ngOnInit called');
     this.loadSettings();
   }
 
-  /**
-   * Loads user settings from the backend.
-   * Updates local component state with the received values.
-   */
   loadSettings(): void {
+    console.log('📡 loadSettings() called');
+
     this.http
       .get<any>('http://localhost:5000/settings')
-      .subscribe(res => {
-        this.city = res.city;
-        this.morningTime = res.morning_time;
-        this.eveningTime = res.evening_time;
+      .subscribe({
+        next: (res) => {
+          console.log('📥 Settings response:', res);
+
+          if (res.user) {
+            this.city = res.user.city || 'Your city';
+          }
+
+          if (res.settings) {
+            this.morningTime = res.settings.morning_time || '07:30';
+            this.eveningTime = res.settings.evening_time || '21:00';
+          }
+
+          console.log('✅ Values updated:', {
+            city: this.city,
+            morningTime: this.morningTime,
+            eveningTime: this.eveningTime
+          });
+
+          // ⚡ KRITISCH: Force Change Detection
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('❌ Failed to load settings:', err);
+        }
       });
   }
+
 
   /**
    * Saves the selected city to the backend.
@@ -81,7 +89,16 @@ export class Settings implements OnInit {
       .post('http://localhost:5000/settings/city', {
         city: this.city
       })
-      .subscribe();
+      .subscribe({
+        next: (res: any) => {
+          console.log('✅ City saved:', res);
+          alert('Stadt gespeichert!');
+        },
+        error: (err) => {
+          console.error('❌ Failed to save city:', err);
+          alert('Fehler beim Speichern!');
+        }
+      });
   }
 
   /**
@@ -93,6 +110,18 @@ export class Settings implements OnInit {
         morning_time: this.morningTime,
         evening_time: this.eveningTime
       })
-      .subscribe();
+      .subscribe({
+        next: (res: any) => {
+          console.log('✅ Time settings saved:', res);
+          alert('Zeiten gespeichert!');
+        },
+        error: (err) => {
+          console.error('❌ Failed to save time settings:', err);
+          alert('Fehler beim Speichern!');
+        }
+      });
   }
+
+
+ 
 }
