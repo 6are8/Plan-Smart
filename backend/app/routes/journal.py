@@ -253,3 +253,39 @@ def delete_journal_entry(entry_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@journal_bp.route("/suggestions", methods=["GET"])
+@jwt_required()
+def get_task_suggestions():
+    """
+    Gibt intelligente Aufgabenvorschläge für morgen zurück,
+    basierend auf AI-Musteranalyse der letzten 3 Wochen.
+    """
+    try:
+        from app.services.pattern_service import SmartPatternService
+        from app import models
+
+        username = get_jwt_identity()
+        user = User.find_by_username(username=username)
+
+        if not user:
+            return jsonify({"error": "Benutzer nicht gefunden"}), 404
+
+        # Rufe den intelligenten Service auf
+        suggestions = SmartPatternService.get_suggestions_for_tomorrow(user.id, models)
+
+        return (
+            jsonify(
+                {
+                    "suggestions": suggestions,
+                    "count": len(suggestions),
+                    "generated_at": date.today().isoformat(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        print(f"Fehler beim Abrufen der Vorschläge: {str(e)}")
+        return jsonify({"error": f"Server-Fehler: {str(e)}"}), 500
