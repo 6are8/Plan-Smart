@@ -227,14 +227,13 @@ export class Diary {
       return;
     }
 
-    const moodScore = this.moodScoreFromLabel(this.moodLabel as MoodName);
-
     const payload = {
-      mood: moodScore,
+      mood: this.moodLabel,  
       what_went_well: this.form.value.good,
       what_to_improve: this.form.value.improve,
-      how_i_feel: this.moodLabel  // ✅ Required by backend
+      how_i_feel: this.moodLabel
     };
+
 
     this.http.post('http://localhost:5000/journal/', payload).subscribe({
       next: (res) => {

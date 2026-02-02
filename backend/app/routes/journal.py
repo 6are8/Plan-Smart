@@ -28,11 +28,24 @@ def create_journal_entry():
                 'required': required_fields
             }), 400
 
-        mood = data.get('mood')
-        if not isinstance(mood, int) or mood < 1 or mood > 5:
-            return jsonify({'error': 'Mood must be between 1 and 5'}), 400
+        mood = data.get("mood")
+        valid_moods = [
+            "Excited",
+            "Happy",
+            "Calm",
+            "Focused",
+            "Tired",
+            "Sad",
+            "Stressed",
+            "Angry",
+        ]
 
-        
+        if not isinstance(mood, str) or mood not in valid_moods:
+            return (
+                jsonify({"error": "Mood must be one of: " + ", ".join(valid_moods)}),
+                400,
+            )
+
         entry_text = f"""
 PAST (heute, bereits passiert):
 - What went well: {data['what_went_well']}
@@ -163,10 +176,25 @@ def update_journal_entry(entry_id):
 
         updated = False
 
-        if 'mood' in data:
-            if not isinstance(data['mood'], int) or data['mood'] < 1 or data['mood'] > 5:
-                return jsonify({'error': 'Mood must be between 1 and 5'}), 400
-            entry.mood = data['mood']
+        if "mood" in data:
+            valid_moods = [
+                "Excited",
+                "Happy",
+                "Calm",
+                "Focused",
+                "Tired",
+                "Sad",
+                "Stressed",
+                "Angry",
+            ]
+            if not isinstance(data["mood"], str) or data["mood"] not in valid_moods:
+                return (
+                    jsonify(
+                        {"error": "Mood must be one of: " + ", ".join(valid_moods)}
+                    ),
+                    400,
+                )
+            entry.mood = data["mood"]
             updated = True
 
         if 'what_went_well' in data:
