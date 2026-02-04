@@ -1,5 +1,6 @@
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Component, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import {
   FormBuilder,
   FormGroup,
@@ -21,6 +22,14 @@ type MoodName =
   | 'Sad'
   | 'Stressed'
   | 'Angry';
+
+
+interface TaskSuggestion {
+  text: string;
+  frequency: number;
+  confidence: number;
+}
+
 
 @Component({
   selector: 'app-diary',
@@ -58,8 +67,14 @@ export class Diary {
   moodEmoji = '🙂';
 
   /** Success / error messages */
+ 
   successMessage: string | null = null;
   errorMessage: string | null = null;
+
+
+  taskSuggestions: TaskSuggestion[] = [];
+  showSuggestions = true;
+  loadingSuggestions = false;
 
   /**
    * Preset moods for quick selection and nearest mapping.
@@ -83,6 +98,50 @@ export class Diary {
       improve: ['', Validators.required],
     });
   }
+
+
+  ngOnInit(): void {
+    this.loadTaskSuggestions();
+  }
+
+  /**
+ * ✨ تحميل الاقتراحات من الـ Backend
+ */
+  loadTaskSuggestions(): void {
+    this.loadingSuggestions = true;
+
+    this.http.get<any>('http://localhost:5000/journal/suggestions')
+      .subscribe({
+        next: (res) => {
+          this.taskSuggestions = res.suggestions || [];
+          this.loadingSuggestions = false;
+          console.log('📋 Task suggestions loaded:', this.taskSuggestions);
+        },
+        error: (err) => {
+          console.error('Failed to load suggestions:', err);
+          this.loadingSuggestions = false;
+        }
+      });
+  }
+
+
+  applySuggestion(suggestion: TaskSuggestion): void {
+    const currentValue = this.form.value.improve || '';
+    const newValue = currentValue
+      ? `${currentValue}\n${suggestion.text}`
+      : suggestion.text;
+
+    this.form.patchValue({ improve: newValue });
+
+    this.taskSuggestions = this.taskSuggestions.filter(s => s.text !== suggestion.text);
+  }
+
+
+  onImproveFieldFocus(): void {
+    // يمكنك إخفاءها أو تركها - حسب تفضيلك
+    // this.showSuggestions = false;
+  }
+
 
   /**
    * Selects a mood preset directly.
@@ -227,14 +286,13 @@ export class Diary {
       return;
     }
 
-    const moodScore = this.moodScoreFromLabel(this.moodLabel as MoodName);
-
     const payload = {
-      mood: moodScore,
+      mood: this.moodLabel,  
       what_went_well: this.form.value.good,
       what_to_improve: this.form.value.improve,
-      how_i_feel: this.moodLabel  // ✅ Required by backend
+      how_i_feel: this.moodLabel
     };
+
 
     this.http.post('http://localhost:5000/journal/', payload).subscribe({
       next: (res) => {
@@ -251,6 +309,8 @@ export class Diary {
         this.dotTopPct = 50;
         this.moodLabel = 'Not set';
         this.moodEmoji = '🙂';
+
+        this.loadTaskSuggestions();
       },
       error: (err) => {
         console.error('❌ Save failed:', err);

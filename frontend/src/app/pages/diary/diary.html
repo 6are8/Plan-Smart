@@ -10,23 +10,12 @@
       <div class="axis top">High energy</div>
       <div class="axis left">Unpleasant</div>
 
-      <div
-        class="mood2d-circle"
-        #circle
-        (pointerdown)="onCirclePointerDown($event)"
-        (pointermove)="onCirclePointerMove($event)"
-        (pointerup)="onCirclePointerUp()"
-        (pointercancel)="onCirclePointerUp()"
-        (lostpointercapture)="onCirclePointerUp()"
-      >
+      <div class="mood2d-circle" #circle (pointerdown)="onCirclePointerDown($event)"
+        (pointermove)="onCirclePointerMove($event)" (pointerup)="onCirclePointerUp()"
+        (pointercancel)="onCirclePointerUp()" (lostpointercapture)="onCirclePointerUp()">
         <div class="crosshair"></div>
 
-        <div
-          class="mood2d-dot"
-          [style.left.%]="dotLeftPct"
-          [style.top.%]="dotTopPct"
-          [class.is-set]="moodIsSet"
-        ></div>
+        <div class="mood2d-dot" [style.left.%]="dotLeftPct" [style.top.%]="dotTopPct" [class.is-set]="moodIsSet"></div>
 
         <div class="mood2d-centerhint" *ngIf="!moodIsSet">
           Tap / drag
@@ -64,19 +53,31 @@
   <form [formGroup]="form">
 
     <label>What went well today?</label>
-    <textarea
-      formControlName="good"
-      placeholder="e.g. finished a presentation, 2× focus sessions…">
+    <textarea formControlName="good" placeholder="e.g. finished a presentation, 2× focus sessions…">
     </textarea>
 
     <label>What could be improved tomorrow?</label>
-    <textarea
-      formControlName="improve"
-      placeholder="go to bed earlier, reduce social media…">
+
+
+    @if (taskSuggestions.length > 0 && showSuggestions) {
+    <div class="suggestions-container">
+      <span class="suggestions-label">💡 Suggestions based on your patterns:</span>
+      <div class="suggestions-chips">
+        @for (suggestion of taskSuggestions; track suggestion.text) {
+        <button type="button" class="suggestion-chip" (click)="applySuggestion(suggestion)">
+          {{ suggestion.text }}
+        </button>
+        }
+      </div>
+    </div>
+    }
+
+
+    <textarea formControlName="improve" placeholder="go to bed earlier, reduce social media…">
     </textarea>
 
     @if (errorMessage) {
-      <p class="muted">{{ errorMessage }}</p>
+    <p class="muted">{{ errorMessage }}</p>
     }
 
     <button type="button" (click)="submit()">
@@ -84,7 +85,7 @@
     </button>
 
     @if (successMessage) {
-      <p class="success">{{ successMessage }}</p>
+    <p class="success">{{ successMessage }}</p>
     }
 
   </form>

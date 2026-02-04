@@ -28,11 +28,24 @@ def create_journal_entry():
                 'required': required_fields
             }), 400
 
-        mood = data.get('mood')
-        if not isinstance(mood, int) or mood < 1 or mood > 5:
-            return jsonify({'error': 'Mood must be between 1 and 5'}), 400
+        mood = data.get("mood")
+        valid_moods = [
+            "Excited",
+            "Happy",
+            "Calm",
+            "Focused",
+            "Tired",
+            "Sad",
+            "Stressed",
+            "Angry",
+        ]
 
-        
+        if not isinstance(mood, str) or mood not in valid_moods:
+            return (
+                jsonify({"error": "Mood must be one of: " + ", ".join(valid_moods)}),
+                400,
+            )
+
         entry_text = f"""
 PAST (heute, bereits passiert):
 - What went well: {data['what_went_well']}
@@ -163,10 +176,25 @@ def update_journal_entry(entry_id):
 
         updated = False
 
-        if 'mood' in data:
-            if not isinstance(data['mood'], int) or data['mood'] < 1 or data['mood'] > 5:
-                return jsonify({'error': 'Mood must be between 1 and 5'}), 400
-            entry.mood = data['mood']
+        if "mood" in data:
+            valid_moods = [
+                "Excited",
+                "Happy",
+                "Calm",
+                "Focused",
+                "Tired",
+                "Sad",
+                "Stressed",
+                "Angry",
+            ]
+            if not isinstance(data["mood"], str) or data["mood"] not in valid_moods:
+                return (
+                    jsonify(
+                        {"error": "Mood must be one of: " + ", ".join(valid_moods)}
+                    ),
+                    400,
+                )
+            entry.mood = data["mood"]
             updated = True
 
         if 'what_went_well' in data:
@@ -225,3 +253,39 @@ def delete_journal_entry(entry_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Server error: {str(e)}'}), 500
+
+
+@journal_bp.route("/suggestions", methods=["GET"])
+@jwt_required()
+def get_task_suggestions():
+    """
+    Gibt intelligente Aufgabenvorschläge für morgen zurück,
+    basierend auf AI-Musteranalyse der letzten 3 Wochen.
+    """
+    try:
+        from app.services.pattern_service import SmartPatternService
+        from app import models
+
+        username = get_jwt_identity()
+        user = User.find_by_username(username=username)
+
+        if not user:
+            return jsonify({"error": "Benutzer nicht gefunden"}), 404
+
+        # Rufe den intelligenten Service auf
+        suggestions = SmartPatternService.get_suggestions_for_tomorrow(user.id, models)
+
+        return (
+            jsonify(
+                {
+                    "suggestions": suggestions,
+                    "count": len(suggestions),
+                    "generated_at": date.today().isoformat(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        print(f"Fehler beim Abrufen der Vorschläge: {str(e)}")
+        return jsonify({"error": f"Server-Fehler: {str(e)}"}), 500
